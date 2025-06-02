@@ -48,11 +48,13 @@
 ```
 
 - Javascriptエラーになってたので、下記修正依頼
-```
-Javascriptエラー「Uncaught ReferenceError: addEntry is not defined」が発生しているので修正してください
-```
+  ```
+  Javascriptエラー「Uncaught ReferenceError: addEntry is not defined」が発生しているので修正してください
+  ```
 
 - Javascriptエラーが解消されて出納帳が表示されることを確認
+
+- ダークモードとライトモード切り替えるtoggleボタン追加実装依頼
   - 下記、3回依頼しても直らなかったので、claudeで質問して手動で修正笑。
     ```
     // ❌ 間違い
@@ -60,4 +62,20 @@ Javascriptエラー「Uncaught ReferenceError: addEntry is not defined」が発�
 
     // ✅ 正解
     document.body.classList.contains('dark-mode')
+    ```
+  - AIにちゃんとフィードバックした方がいいらしいので、手動で修正した箇所を元に戻し、下記フィードバックを投げてAIに修正させた
+    ```
+    先ほど生成されたコードで、以下のエラーが発生しました：
+
+    `getComputedStyle(document.body).classList.contains('dark-mode')`
+
+    エラー内容：
+    Cannot read properties of undefined (reading 'contains')
+
+    修正内容：
+    `document.body.classList.contains('dark-mode')`
+
+    理由：getComputedStyle()はCSSStyleDeclarationを返すため、classListプロパティは存在しません。classListはHTMLElementのプロパティです。
+
+    今後同様の箇所があれば、同じパターンで修正してください。
     ```
