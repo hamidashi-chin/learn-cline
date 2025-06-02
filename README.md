@@ -53,3 +53,11 @@ Javascriptエラー「Uncaught ReferenceError: addEntry is not defined」が発�
 ```
 
 - Javascriptエラーが解消されて出納帳が表示されることを確認
+  - 下記、3回依頼しても直らなかったので、claudeで質問して手動で修正笑。
+    ```
+    // ❌ 間違い
+    getComputedStyle(document.body).classList.contains('dark-mode')
+
+    // ✅ 正解
+    document.body.classList.contains('dark-mode')
+    ```
