@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>簡易出納帳</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1, h2 {
+            color: #0056b3;
+            border-bottom: 2px solid #0056b3;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+        }
+        #entry-form, #entries-list, #summary, #graph-area {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        #entry-form div {
+            margin-bottom: 15px;
+        }
+        #entry-form label {
+            display: inline-block;
+            width: 100px;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        #entry-form input[type="date"],
+        #entry-form input[type="text"],
+        #entry-form input[type="number"],
+        #entry-form select {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        #entry-form button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+        }
+        #entry-form button:hover {
+            background-color: #0056b3;
+        }
+        #entries-list table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        #entries-list th, #entries-list td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        #entries-list th {
+            background-color: #e9ecef;
+            font-weight: bold;
+        }
+        #entries-list tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .income {
+            color: #28a745; /* Green */
+            font-weight: bold;
+        }
+        .expense {
+            color: #dc3545; /* Red */
+            font-weight: bold;
+        }
+        #summary p {
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+        #summary span {
+            font-weight: bold;
+        }
+        #graph-area {
+            text-align: center;
+        }
+        .graph-controls {
+            margin-bottom: 15px;
+        }
+        .graph-controls button {
+             padding: 8px 15px;
+             margin: 0 5px;
+             background-color: #6c757d;
+             color: white;
+             border: none;
+             border-radius: 4px;
+             cursor: pointer;
+             font-size: 0.9rem;
+             transition: background-color 0.3s ease;
+        }
+        .graph-controls button:hover {
+             background-color: #5a6268;
+        }
+        canvas {
+            max-width: 100%;
+            height: 400px; /* Adjust height as needed */
+            border: 1px solid #ddd;
+            background-color: #fff;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>簡易出納帳</h1>
+
+    <div id="entry-form">
+        <h2>新しい取引を追加</h2>
+        <div>
+            <label for="date">日付:</label>
+            <input type="date" id="date">
+        </div>
+        <div>
+            <label for="item">項目:</label>
+            <input type="text" id="item">
+        </div>
+        <div>
+            <label for="amount">金額 (円):</label>
+            <input type="number" id="amount" min="1">
+        </div>
+        <div>
+            <label for="type">種別:</label>
+            <select id="type">
+                <option value="income">収入</option>
+                <option value="expense">支出</option>
+            </select>
+        </div>
+        <button id="add-button">追加</button>
+    </div>
+
+    <div id="entries-list">
+        <h2>取引一覧</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>日付</th>
+                    <th>項目</th>
+                    <th>金額 (円)</th>
+                    <th>種別</th>
+                </tr>
+            </thead>
+            <tbody id="entries-table-body">
+                <!-- Entries will be added here by JavaScript -->
+            </tbody>
+        </table>
+    </div>
+
+    <div id="summary">
+        <h2>合計</h2>
+        <p>総収入: <span id="total-income">0</span> 円</p>
+        <p>総支出: <span id="total-expense">0</span> 円</p>
+        <p>差引残高: <span id="balance">0</span> 円</p>
+    </div>
+
+    <div id="graph-area">
+        <h2>グラフ</h2>
+        <div class="graph-controls">
+            <button id="daily-graph-button">日単位</button>
+            <button id="monthly-graph-button">月単位</button>
+            <button id="yearly-graph-button">年単位</button>
+        </div>
+        <canvas id="myChart" width="800" height="400"></canvas>
+    </div>
+
+    <script>
+        let entries = []; // 取引データを保持する配列
+
+        // サンプルデータ
+        const sampleEntries = [
+            { date: '2023-10-01', item: '給料', amount: 250000, type: 'income' },
+            { date: '2023-10-01', item: '家賃', amount: 80000, type: 'expense' },
+            { date: '2023-10-05', item: '食費', amount: 5000, type: 'expense' },
+            { date: '2023-10-10', item: '副業収入', amount: 30000, type: 'income' },
+            { date: '2023-10-15', item: '交通費', amount: 2000, type: 'expense' },
+            { date: '2023-11-01', item: '給料', amount: 260000, type: 'income' },
+            { date: '2023-11-03', item: '食費', amount: 6000, type: 'expense' },
+            { date: '2023-11-10', item: '家賃', amount: 80000, type: 'expense' },
+            { date: '2023-12-01', item: '給料', amount: 270000, type: 'income' },
+            { date: '2023-12-05', item: '食費', amount: 7000, type: 'expense' },
+            { date: '2023-12-12', item: 'ボーナス', amount: 100000, type: 'income' },
+            { date: '2024-01-01', item: '給料', amount: 280000, type: 'income' },
+            { date: '2024-01-07', item: '食費', amount: 8000, type: 'expense' },
+            { date: '2024-01-15', item: '家賃', amount: 80000, type: 'expense' },
+        ];
+
+        entries = sampleEntries; // サンプルデータを初期データとして使用
+
+        const entriesTableBody = document.getElementById('entries-table-body');
+        const totalIncomeSpan = document.getElementById('total-income');
+        const totalExpenseSpan = document.getElementById('total-expense');
+        const balanceSpan = document.getElementById('balance');
+        const addButton = document.getElementById('add-button');
+        const dateInput = document.getElementById('date');
+        const itemInput = document.getElementById('item');
+        const amountInput = document.getElementById('amount');
+        const typeSelect = document.getElementById('type');
+        const dailyGraphButton = document.getElementById('daily-graph-button');
+        const monthlyGraphButton = document.getElementById('monthly-graph-button');
+        const yearlyGraphButton = document.getElementById('yearly-graph-button');
+        const canvas = document.getElementById('myChart');
+        const ctx = canvas.getContext('2d');
+
+        // 取引一覧を表示する関数
+        function renderEntries() {
+            entriesTableBody.innerHTML = ''; // 一覧をクリア
+            let totalIncome = 0;
+            let totalExpense = 0;
+
+            // 日付でソート
+            const sortedEntries = [...entries].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            sortedEntries.forEach(entry => {
+                const row = entriesTableBody.insertRow();
+                row.insertCell(0).textContent = entry.date;
+                row.insertCell(1).textContent = entry.item;
+                const amountCell = row.insertCell(2);
+                amountCell.textContent = entry.amount.toLocaleString(); // 金額をカンマ区切りで表示
+                amountCell.classList.add(entry.type); // 収入/支出で色分け
+                row.insertCell(3).textContent = entry.type === 'income' ? '収入' : '支出';
+
+                if (entry.type === 'income') {
+                    totalIncome += entry.amount;
+                } else {
+                    totalExpense += entry.amount;
+                }
+            });
+
+            totalIncomeSpan.textContent = totalIncome.toLocaleString();
+            totalExpenseSpan.textContent = totalExpense.toLocaleString();
+            balanceSpan.textContent = (totalIncome - totalExpense).toLocaleString();
+        }
+
+        // データを集計する関数
+        function aggregateData(period) {
+            const aggregated = {}; // { 'YYYY-MM-DD': { income: 0, expense: 0 }, ... } or { 'YYYY-MM': { income: 0, expense: 0 }, ... } or { 'YYYY': { income: 0, expense: 0 }, ... }
+
+            entries.forEach(entry => {
+                let key;
+                if (period === 'daily') {
+                    key = entry.date; // YYYY-MM-DD
+                } else if (period === 'monthly') {
+                    key = entry.date.substring(0, 7); // YYYY-MM
+                } else if (period === 'yearly') {
+                    key = entry.date.substring(0, 4); // YYYY
+                }
+
+                if (!aggregated[key]) {
+                    aggregated[key] = { income: 0, expense: 0 };
+                }
+
+                if (entry.type === 'income') {
+                    aggregated[key].income += entry.amount;
+                } else {
+                    aggregated[key].expense += entry.amount;
+                }
+            });
+
+            // キー（日付/月/年）でソート
+            const sortedKeys = Object.keys(aggregated).sort();
+            const sortedData = sortedKeys.map(key => ({
+                key: key,
+                income: aggregated[key].income,
+                expense: aggregated[key].expense
+            }));
+
+            return sortedData;
+        }
+
+        // グラフを描画する関数 (Canvasを使用) - 積み上げ棒グラフ
+        function renderGraph(period) {
+            const aggregatedData = aggregateData(period);
+            const labels = aggregatedData.map(data => data.key);
+            const incomeData = aggregatedData.map(data => data.income);
+            const expenseData = aggregatedData.map(data => data.expense);
+
+            const canvasWidth = canvas.width;
+            const canvasHeight = canvas.height;
+            const padding = 60; // パディングを少し増やす
+            const chartWidth = canvasWidth - 2 * padding;
+            const chartHeight = canvasHeight - 2 * padding;
+
+            ctx.clearRect(0, 0, canvasWidth, canvasHeight); // キャンバスをクリア
+
+            // 軸の描画
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, canvasHeight - padding); // Y軸
+            ctx.lineTo(canvasWidth - padding, canvasHeight - padding); // X軸
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            // 目盛りの描画
+            const maxTotalAmount = Math.max(1, ...aggregatedData.map(data => data.income + data.expense)); // 0割りを避ける
+            const numYLabels = 5;
+            const yLabelInterval = maxTotalAmount / numYLabels;
+
+            ctx.fillStyle = '#333';
+            ctx.font = '12px sans-serif';
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'middle';
+
+            for (let i = 0; i <= numYLabels; i++) {
+                const y = canvasHeight - padding - (chartHeight / numYLabels) * i;
+                const label = Math.round(yLabelInterval * i).toLocaleString();
+                ctx.fillText(label, padding - 10, y); // ラベル位置調整
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(padding + 5, y);
+                ctx.strokeStyle = '#333';
+                ctx.stroke();
+
+                // 横のグリッド線 (薄い灰色)
+                if (i > 0) {
+                    ctx.beginPath();
+                    ctx.moveTo(padding, y);
+                    ctx.lineTo(canvasWidth - padding, y);
+                    ctx.strokeStyle = '#eee';
+                    ctx.stroke();
+                }
+            }
+
+            // 棒グラフの描画
+            const barCount = labels.length;
+            if (barCount === 0) return; // データがない場合は描画しない
+
+            const totalBarWidthArea = chartWidth;
+            const barWidth = totalBarWidthArea / (barCount * 1.5); // 棒の幅と間隔を調整
+            const barSpacing = barWidth / 2;
+
+            labels.forEach((label, index) => {
+                const x = padding + barSpacing + (barWidth + barSpacing) * index;
+                const totalAmount = incomeData[index] + expenseData[index];
+
+                // 収入の棒 (下側)
+                const incomeHeight = (incomeData[index] / maxTotalAmount) * chartHeight;
+                ctx.fillStyle = '#28a745'; // 収入の色 (Green)
+                ctx.fillRect(x, canvasHeight - padding - incomeHeight, barWidth, incomeHeight);
+
+                // 支出の棒 (収入の上に積み上げ)
+                const expenseHeight = (expenseData[index] / maxTotalAmount) * chartHeight;
+                ctx.fillStyle = '#dc3545'; // 支出の色 (Red)
+                ctx.fillRect(x, canvasHeight - padding - incomeHeight - expenseHeight, barWidth, expenseHeight);
+
+                // X軸ラベル
+                ctx.fillStyle = '#333';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'top';
+                // ラベルが重なる場合は表示を調整するか省略するなどの考慮が必要だが、今回はシンプルに表示
+                ctx.fillText(label, x + barWidth / 2, canvasHeight - padding + 10);
+            });
+
+            // 凡例の描画
+            const legendX = canvasWidth - padding + 20;
+            const legendY = padding;
+            const legendBoxSize = 12;
+            const legendTextSpacing = 5;
+            const legendLineHeight = 20;
+
+            ctx.font = '12px sans-serif';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'top';
+
+            // 収入凡例
+            ctx.fillStyle = '#28a745';
+            ctx.fillRect(legendX, legendY, legendBoxSize, legendBoxSize);
+            ctx.fillStyle = '#333';
+            ctx.fillText('収入', legendX + legendBoxSize + legendTextSpacing, legendY);
+
+            // 支出凡例
+            ctx.fillStyle = '#dc3545';
+            ctx.fillRect(legendX, legendY + legendLineHeight, legendBoxSize, legendBoxSize);
+            ctx.fillStyle = '#333';
+            ctx.fillText('支出', legendX + legendBoxSize + legendTextSpacing, legendY + legendLineHeight);
+        }
+
+
+        // 新しい取引を追加する関数
+        function addEntry() {
+            const date = dateInput.value;
+            const item = itemInput.value.trim();
+            const amount = parseInt(amountInput.value, 10);
+            const type = typeSelect.value;
+
+            if (!date || !item || isNaN(amount) || amount <= 0) {
+                alert('日付、項目、金額を正しく入力してください。');
+                return;
+            }
+
+            const newEntry = {
+                date: date,
+                item: item,
+                amount: amount,
+                type: type
+            };
+
+            entries.push(newEntry);
+
+            // 入力フィールドをクリア
+            itemInput.value = '';
+            amountInput.value = '';
+            dateInput.valueAsDate = new Date(); // 日付は今日に戻す
+
+            renderEntries();
+            renderGraph('daily'); // 新しい取引追加後は日単位グラフを再描画
+        }
+
+        // イベントリスナーを設定
+        addButton.addEventListener('click', addEntry);
+        dateInput.addEventListener('keypress', function(event) { if (event.key === 'Enter') addEntry(); });
+        itemInput.addEventListener('keypress', function(event) { if (event.key === 'Enter') addEntry(); });
+        amountInput.addEventListener('keypress', function(event) { if (event.key === 'Enter') addEntry(); });
+        typeSelect.addEventListener('keypress', function(event) { if (event.key === 'Enter') addEntry(); });
+
+
+        dailyGraphButton.addEventListener('click', () => renderGraph('daily'));
+        monthlyGraphButton.addEventListener('click', () => renderGraph('monthly'));
+        yearlyGraphButton.addEventListener('click', () => renderGraph('yearly'));
+
+        // 初期表示
+        renderEntries();
+        renderGraph('daily'); // ページロード時に日単位グラフを表示
+
+        // 現在の日付を入力フィールドにセット
+        dateInput.valueAsDate = new Date();
+
+    </script>
+</body>
+</html>
