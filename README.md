@@ -86,3 +86,13 @@
   ```
   - グラフの描画がバグり、グラフ部分の表示領域が縦100万px超えた
     - グラフ部分の表示領域が100万px超え、表示崩れしている旨、canvas#myChartのheight部分がおかしいと指摘したら、適切に修正された。
+
+## ClineでTypeScript/Node.js/SQLiteでバックエンド作成
+
+### 概要
+- UdemyではClaudeSonnet3.5使用していますが、ここでは引き続きGeminiの無料APIを使用して実装を進めるため、バックエンド実装用のプロンプトはGemini2.5Proと壁打ちして進める。
+  - 引き続きGemini無料APIを使用するので、Gemini無料APIのことはGeminiに聞いた方がいいだろう、ってことでGemini2.5Proのチャットで壁打ちする。
+- Geminiの無料APIじゃ役不足だわーってなったらClaudeSonnet4のAPIを課金する。
+
+### プロンプト
+
