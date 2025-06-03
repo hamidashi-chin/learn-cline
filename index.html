@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>簡易出納帳</title>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             font-family: sans-serif;
@@ -109,7 +111,7 @@
         }
         canvas {
             max-width: 100%;
-            height: 400px; /* Adjust height as needed */
+            /* height: 400px; /* Adjust height as needed */ */
             border: 1px solid #ddd;
             background-color: #fff;
             margin-top: 10px;
@@ -159,14 +161,22 @@
         body.dark-mode #entries-list tr:nth-child(even) {
             background-color: #333;
         }
-        body.dark-mode .income {
-            color: #5cb85c; /* 明るい緑 */
-        }
-        body.dark-mode .expense {
-            color: #d9534f; /* 明るい赤 */
-        }
         body.dark-mode canvas {
             background-color: #3c3c3c; /* グラフ背景 */
+        }
+        #mode-toggle-button {
+            padding: 10px 20px;
+            background-color: #6c757d; /* グレー系 */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+            margin-bottom: 20px; /* 下に余白を追加 */
+        }
+        #mode-toggle-button:hover {
+            background-color: #5a6268; /* グレー系のホバー色 */
         }
     </style>
 </head>
@@ -225,15 +235,19 @@
     <div id="graph-area">
         <h2>グラフ</h2>
         <div class="graph-controls">
-            <button id="daily-graph-button">日単位</button>
-            <button id="monthly-graph-button">月単位</button>
-            <button id="yearly-graph-button">年単位</button>
+            <label for="graph-period">表示単位:</label>
+            <select id="graph-period">
+                <option value="daily">日単位</option>
+                <option value="monthly">月単位</option>
+                <option value="yearly">年単位</option>
+            </select>
         </div>
         <canvas id="myChart" width="800" height="400"></canvas>
     </div>
 
     <script>
         let entries = []; // 取引データを保持する配列
+        let myChart; // Chart.js インスタンスを保持する変数
 
         // サンプルデータ
         const sampleEntries = [
@@ -268,7 +282,7 @@
         const monthlyGraphButton = document.getElementById('monthly-graph-button');
         const yearlyGraphButton = document.getElementById('yearly-graph-button');
         const canvas = document.getElementById('myChart');
-        const ctx = canvas.getContext('2d');
+        const graphPeriodSelect = document.getElementById('graph-period');
 
         // 取引一覧を表示する関数
         function renderEntries() {
@@ -336,112 +350,102 @@
             return sortedData;
         }
 
-        // グラフを描画する関数 (Canvasを使用) - 積み上げ棒グラフ
+        // グラフを描画する関数 (Chart.jsを使用) - 折れ線グラフ
         function renderGraph(period) {
             const aggregatedData = aggregateData(period);
             const labels = aggregatedData.map(data => data.key);
             const incomeData = aggregatedData.map(data => data.income);
             const expenseData = aggregatedData.map(data => data.expense);
 
-            const canvasWidth = canvas.width;
-            const canvasHeight = canvas.height;
-            const padding = 60; // パディングを少し増やす
-            const chartWidth = canvasWidth - 2 * padding;
-            const chartHeight = canvasHeight - 2 * padding;
-
-            ctx.clearRect(0, 0, canvasWidth, canvasHeight); // キャンバスをクリア
-
-            // 軸の描画
-            ctx.beginPath();
-            ctx.moveTo(padding, padding);
-            ctx.lineTo(padding, canvasHeight - padding); // Y軸
-            ctx.lineTo(canvasWidth - padding, canvasHeight - padding); // X軸
-            ctx.strokeStyle = getComputedStyle(document.body).color; // 現在の文字色を使用
-            ctx.lineWidth = 1;
-            ctx.stroke();
-
-            // 目盛りの描画
-            const maxTotalAmount = Math.max(1, ...aggregatedData.map(data => data.income + data.expense)); // 0割りを避ける
-            const numYLabels = 5;
-            const yLabelInterval = maxTotalAmount / numYLabels;
-
-            ctx.fillStyle = getComputedStyle(document.body).color; // 現在の文字色を使用
-            ctx.font = '12px sans-serif';
-            ctx.textAlign = 'right';
-            ctx.textBaseline = 'middle';
-
-            for (let i = 0; i <= numYLabels; i++) {
-                const y = canvasHeight - padding - (chartHeight / numYLabels) * i;
-                const label = Math.round(yLabelInterval * i).toLocaleString();
-                ctx.fillText(label, padding - 10, y); // ラベル位置調整
-                ctx.beginPath();
-                ctx.moveTo(padding, y);
-                ctx.lineTo(padding + 5, y);
-                ctx.strokeStyle = getComputedStyle(document.body).color; // 現在の文字色を使用
-                ctx.stroke();
-
-                // 横のグリッド線 (薄い灰色)
-                if (i > 0) {
-                    ctx.beginPath();
-                    ctx.moveTo(padding, y);
-                    ctx.lineTo(canvasWidth - padding, y);
-                    ctx.strokeStyle = getComputedStyle(document.body).color === '#cccccc' ? '#444' : '#eee'; // ダークモード時は少し濃い灰色
-                    ctx.stroke();
-                }
+            // 既存のグラフがあれば破棄
+            if (myChart) {
+                myChart.destroy();
             }
 
-            // 棒グラフの描画
-            const barCount = labels.length;
-            if (barCount === 0) return; // データがない場合は描画しない
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            const textColor = isDarkMode ? '#cccccc' : '#333';
+            const gridColor = isDarkMode ? '#444' : '#eee';
 
-            const totalBarWidthArea = chartWidth;
-            const barWidth = totalBarWidthArea / (barCount * 1.5); // 棒の幅と間隔を調整
-            const barSpacing = barWidth / 2;
-
-            labels.forEach((label, index) => {
-                const x = padding + barSpacing + (barWidth + barSpacing) * index;
-                const totalAmount = incomeData[index] + expenseData[index];
-
-                // 収入の棒 (下側)
-                const incomeHeight = (incomeData[index] / maxTotalAmount) * chartHeight;
-                ctx.fillStyle = document.body.classList.contains('dark-mode') ? '#5cb85c' : '#28a745'; // 収入の色 (Green)
-                ctx.fillRect(x, canvasHeight - padding - incomeHeight, barWidth, incomeHeight);
-
-                // 支出の棒 (収入の上に積み上げ)
-                const expenseHeight = (expenseData[index] / maxTotalAmount) * chartHeight;
-                ctx.fillStyle = document.body.classList.contains('dark-mode') ? '#d9534f' : '#dc3545'; // 支出の色 (Red)
-                ctx.fillRect(x, canvasHeight - padding - incomeHeight - expenseHeight, barWidth, expenseHeight);
-
-                // X軸ラベル
-                ctx.fillStyle = getComputedStyle(document.body).color; // 現在の文字色を使用
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'top';
-                // ラベルが重なる場合は表示を調整するか省略するなどの考慮が必要だが、今回はシンプルに表示
-                ctx.fillText(label, x + barWidth / 2, canvasHeight - padding + 10);
+            myChart = new Chart(canvas, {
+                type: 'line', // 折れ線グラフに変更
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: '収入',
+                            data: incomeData,
+                            borderColor: isDarkMode ? '#5cb85c' : '#28a745', // 収入の色 (Green)
+                            backgroundColor: 'rgba(40, 167, 69, 0.2)', // 収入の背景色 (薄いGreen)
+                            fill: true, // エリアを塗りつぶす
+                            tension: 0.1 // 曲線を滑らかにする
+                        },
+                        {
+                            label: '支出',
+                            data: expenseData,
+                            borderColor: isDarkMode ? '#d9534f' : '#dc3545', // 支出の色 (Red)
+                            backgroundColor: 'rgba(220, 53, 69, 0.2)', // 支出の背景色 (薄いRed)
+                            fill: true, // エリアを塗りつぶす
+                            tension: 0.1 // 曲線を滑らかにする
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true, // アスペクト比を固定しない
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: period === 'daily' ? '日付' : (period === 'monthly' ? '月' : '年'),
+                                color: textColor
+                            },
+                            ticks: {
+                                color: textColor // X軸ラベルの色
+                            },
+                            grid: {
+                                color: gridColor // X軸グリッド線の色
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: '金額 (円)',
+                                color: textColor
+                            },
+                            ticks: {
+                                color: textColor, // Y軸ラベルの色
+                                callback: function(value) {
+                                    return value.toLocaleString(); // 金額をカンマ区切りで表示
+                                }
+                            },
+                             grid: {
+                                color: gridColor // Y軸グリッド線の色
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: textColor // 凡例の文字色
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.raw !== null) {
+                                        label += context.raw.toLocaleString() + ' 円'; // ツールチップの金額をカンマ区切りで表示
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
             });
-
-            // 凡例の描画
-            const legendX = canvasWidth - padding + 20;
-            const legendY = padding;
-            const legendBoxSize = 12;
-            const legendTextSpacing = 5;
-            const legendLineHeight = 20;
-
-            ctx.font = '12px sans-serif';
-            ctx.textAlign = 'left';
-            ctx.textBaseline = 'top';
-
-            // 収入凡例
-            ctx.fillStyle = document.body.classList.contains('dark-mode') ? '#5cb85c' : '#28a745';
-            ctx.fillRect(legendX, legendY, legendBoxSize, legendBoxSize);
-            ctx.fillStyle = getComputedStyle(document.body).color;
-            ctx.fillText('収入', legendX + legendBoxSize + legendTextSpacing, legendY);
-
-            // 支出凡例
-            ctx.fillStyle = document.body.classList.contains('dark-mode') ? '#d9534f' : '#dc3545';
-            ctx.fillRect(legendX, legendY + legendLineHeight, legendBoxSize, legendBoxSize);
-            ctx.fillStyle = getComputedStyle(document.body).color;
-            ctx.fillText('支出', legendX + legendBoxSize + legendTextSpacing, legendY + legendLineHeight);
         }
 
 
@@ -483,9 +487,9 @@
         typeSelect.addEventListener('keypress', function(event) { if (event.key === 'Enter') addEntry(); });
 
 
-        dailyGraphButton.addEventListener('click', () => renderGraph('daily'));
-        monthlyGraphButton.addEventListener('click', () => renderGraph('monthly'));
-        yearlyGraphButton.addEventListener('click', () => renderGraph('yearly'));
+        graphPeriodSelect.addEventListener('change', (event) => {
+            renderGraph(event.target.value);
+        });
 
         // 初期表示
         renderEntries();
@@ -508,7 +512,8 @@
                 document.body.classList.remove('dark-mode');
                 modeToggleButton.textContent = 'ダークモード';
             }
-             renderGraph(document.querySelector('.graph-controls button.active')?.id.replace('-graph-button', '') || 'daily'); // グラフを再描画して色を更新
+             // ダークモード切り替え時もグラフを再描画して色を更新
+             renderGraph(graphPeriodSelect.value);
         }
 
         // ボタンクリック時の処理
@@ -521,16 +526,16 @@
         // ページロード時に設定を適用
         applyDarkModeSetting();
 
-        // グラフボタンのアクティブ状態を管理
-        const graphButtons = document.querySelectorAll('.graph-controls button');
-        graphButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                graphButtons.forEach(btn => btn.classList.remove('active'));
-                button.classList.add('active');
-            });
-        });
-        // 初期アクティブボタンを設定
-        dailyGraphButton.classList.add('active');
+        // グラフボタンのアクティブ状態を管理 (プルダウンになったので不要)
+        // const graphButtons = document.querySelectorAll('.graph-controls button');
+        // graphButtons.forEach(button => {
+        //     button.addEventListener('click', () => {
+        //         graphButtons.forEach(btn => btn.classList.remove('active'));
+        //         button.classList.add('active');
+        //     });
+        // });
+        // 初期アクティブボタンを設定 (プルダウンになったので不要)
+        // dailyGraphButton.classList.add('active');
 
 
     </script>
