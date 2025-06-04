@@ -107,7 +107,7 @@ templates/kakeibo.html
 必要なモジュールのセットアップ方法も提示してください。
 ```
 
-#### gemini-2.o-flash-thinking-exp-1219のAPIで実装する場合
+#### gemini-2.0-flash-thinking-exp-1219のAPIで実装する場合
 
 ※Gemini2.5Proと壁打ちして、進め方検討
 - なるべく詳しい仕様書を作成して、それをプロンプトとして渡すのがいい、と回答があった
