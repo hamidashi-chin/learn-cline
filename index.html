@@ -138,15 +138,23 @@
 
     <div id="summary-charts">
         <h2>集計グラフ</h2>
-        <div class="chart-container">
+        <div>
+            表示単位:
+            <select id="chart-unit-select">
+                <option value="daily">日単位</option>
+                <option value="monthly">月単位</option>
+                <option value="yearly">年単位</option>
+            </select>
+        </div>
+        <div id="daily-chart-container" class="chart-container">
             <h3>日単位</h3>
             <canvas id="daily-chart"></canvas>
         </div>
-        <div class="chart-container">
+        <div id="monthly-chart-container" class="chart-container" style="display: none;">
             <h3>月単位</h3>
             <canvas id="monthly-chart"></canvas>
         </div>
-        <div class="chart-container">
+        <div id="yearly-chart-container" class="chart-container" style="display: none;">
             <h3>年単位</h3>
             <canvas id="yearly-chart"></canvas>
         </div>
@@ -159,6 +167,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             fetchTransactions();
             setupFormListener();
+            setupChartUnitChangeListener(); // セレクトボックスのイベントリスナーを設定
         });
 
         async function fetchTransactions() {
@@ -406,7 +415,29 @@
                     }
                 },
             });
+
+            // Initial chart display based on select box value
+            displaySelectedChart();
         }
+
+        function setupChartUnitChangeListener() {
+            const selectElement = document.getElementById('chart-unit-select');
+            selectElement.addEventListener('change', displaySelectedChart);
+        }
+
+        function displaySelectedChart() {
+            const selectElement = document.getElementById('chart-unit-select');
+            const selectedUnit = selectElement.value;
+
+            const dailyContainer = document.getElementById('daily-chart-container');
+            const monthlyContainer = document.getElementById('monthly-chart-container');
+            const yearlyContainer = document.getElementById('yearly-chart-container');
+
+            dailyContainer.style.display = selectedUnit === 'daily' ? 'block' : 'none';
+            monthlyContainer.style.display = selectedUnit === 'monthly' ? 'block' : 'none';
+            yearlyContainer.style.display = selectedUnit === 'yearly' ? 'block' : 'none';
+        }
+
 
         // サンプルデータの追加 (開発用)
         async function addSampleData() {
