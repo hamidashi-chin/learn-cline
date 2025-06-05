@@ -178,10 +178,14 @@
 
             transactions.forEach(transaction => {
                 const row = tbody.insertRow();
+                // 日付を yyyy/mm/dd 形式に変換
+                const formattedDate = transaction.date.split('-').join('/');
+                // 金額をカンマ区切りに変換
+                const formattedAmount = transaction.amount.toLocaleString();
                 row.innerHTML = `
-                    <td>${transaction.date}</td>
+                    <td>${formattedDate}</td>
                     <td>${transaction.item}</td>
-                    <td>${transaction.amount}</td>
+                    <td>${formattedAmount}</td>
                     <td>${transaction.type === 1 ? '収入' : '支出'}</td>
                     <td>
                         <button class="edit-btn" data-id="${transaction.id}">編集</button>
