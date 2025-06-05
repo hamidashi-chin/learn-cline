@@ -1,0 +1,20 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Transaction {
+  id         Int      @id @default(autoincrement())
+  date       String   @map("date") // yyyy-mm-dd形式で保存
+  item       String
+  amount     Int
+  type       Int // 1:収入, 2:支出
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@map("transactions") // テーブル名を指定
+}

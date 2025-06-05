@@ -3,188 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>簡易出納帳</title>
-    <!-- Chart.js CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>出納帳</title>
     <style>
         body {
             font-family: sans-serif;
             margin: 20px;
-            line-height: 1.6;
-            color: #333;
         }
         h1, h2 {
-            color: #0056b3;
-            border-bottom: 2px solid #0056b3;
-            padding-bottom: 5px;
-            margin-bottom: 15px;
+            color: #333;
         }
-        #entry-form, #entries-list, #summary, #graph-area {
-            margin-bottom: 30px;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            background-color: #f9f9f9;
+        #transaction-form {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
         }
-        #entry-form div {
-            margin-bottom: 15px;
+        #transaction-form div {
+            margin-bottom: 10px;
         }
-        #entry-form label {
+        #transaction-form label {
             display: inline-block;
-            width: 100px;
-            margin-right: 10px;
-            font-weight: bold;
+            width: 80px;
         }
-        #entry-form input[type="date"],
-        #entry-form input[type="text"],
-        #entry-form input[type="number"],
-        #entry-form select {
+        #transaction-form input, #transaction-form select {
             padding: 8px;
             border: 1px solid #ccc;
             border-radius: 4px;
-            font-size: 1rem;
         }
-        #entry-form button {
-            padding: 10px 20px;
-            background-color: #007bff;
+        #transaction-form button {
+            padding: 10px 15px;
+            background-color: #5cb85c;
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 4px;
             cursor: pointer;
-            font-size: 1rem;
-            transition: background-color 0.3s ease;
         }
-        #entry-form button:hover {
-            background-color: #0056b3;
+        #transaction-form button:hover {
+            background-color: #4cae4c;
         }
-        #entries-list table {
+        #transactions-list {
+            margin-top: 20px;
+        }
+        #transactions-list table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
         }
-        #entries-list th, #entries-list td {
+        #transactions-list th, #transactions-list td {
             border: 1px solid #ddd;
-            padding: 10px;
+            padding: 8px;
             text-align: left;
         }
-        #entries-list th {
-            background-color: #e9ecef;
-            font-weight: bold;
-        }
-        #entries-list tr:nth-child(even) {
+        #transactions-list th {
             background-color: #f2f2f2;
         }
-        .income {
-            color: #28a745; /* Green */
-            font-weight: bold;
-        }
-        .expense {
-            color: #dc3545; /* Red */
-            font-weight: bold;
-        }
-        #summary p {
-            font-size: 1.1rem;
-            margin-bottom: 8px;
-        }
-        #summary span {
-            font-weight: bold;
-        }
-        #graph-area {
-            text-align: center;
-        }
-        .graph-controls {
-            margin-bottom: 15px;
-        }
-        .graph-controls button {
-             padding: 8px 15px;
-             margin: 0 5px;
-             background-color: #6c757d;
-             color: white;
-             border: none;
-             border-radius: 4px;
-             cursor: pointer;
-             font-size: 0.9rem;
-             transition: background-color 0.3s ease;
-        }
-        .graph-controls button:hover {
-             background-color: #5a6268;
-        }
-        canvas {
-            max-width: 100%;
-            /* height: 400px; /* Adjust height as needed */ */
-            border: 1px solid #ddd;
-            background-color: #fff;
-            margin-top: 10px;
-        }
-
-        /* ダークモードスタイル */
-        body.dark-mode {
-            background-color: #1e1e1e;
-            color: #cccccc;
-        }
-        body.dark-mode h1,
-        body.dark-mode h2 {
-            color: #4da6ff; /* 明るい青 */
-            border-bottom-color: #4da6ff;
-        }
-        body.dark-mode #entry-form,
-        body.dark-mode #entries-list,
-        body.dark-mode #summary,
-        body.dark-mode #graph-area {
-            background-color: #2d2d2d;
-            border-color: #555;
-        }
-        body.dark-mode #entry-form input[type="date"],
-        body.dark-mode #entry-form input[type="text"],
-        body.dark-mode #entry-form input[type="number"],
-        body.dark-mode #entry-form select {
-            background-color: #3c3c3c;
-            color: #cccccc;
-            border-color: #555;
-        }
-        body.dark-mode #entry-form input[type="date"]::-webkit-calendar-picker-indicator {
-            filter: invert(1); /* カレンダーアイコンを反転 */
-        }
-        body.dark-mode #entry-form button {
-            background-color: #0056b3;
-        }
-        body.dark-mode #entry-form button:hover {
-            background-color: #003f80;
-        }
-        body.dark-mode #entries-list th {
-            background-color: #3c3c3c;
-            color: #cccccc;
-        }
-        body.dark-mode #entries-list td {
-             border-color: #555;
-        }
-        body.dark-mode #entries-list tr:nth-child(even) {
-            background-color: #333;
-        }
-        body.dark-mode canvas {
-            background-color: #3c3c3c; /* グラフ背景 */
-        }
-        #mode-toggle-button {
-            padding: 10px 20px;
-            background-color: #6c757d; /* グレー系 */
-            color: white;
+        .edit-btn, .delete-btn {
+            padding: 5px 10px;
+            margin-right: 5px;
             border: none;
-            border-radius: 5px;
+            border-radius: 4px;
             cursor: pointer;
-            font-size: 1rem;
-            transition: background-color 0.3s ease;
-            margin-bottom: 20px; /* 下に余白を追加 */
         }
-        #mode-toggle-button:hover {
-            background-color: #5a6268; /* グレー系のホバー色 */
+        .edit-btn {
+            background-color: #f0ad4e;
+            color: white;
+        }
+        .edit-btn:hover {
+            background-color: #ec971f;
+        }
+        .delete-btn {
+            background-color: #d9534f;
+            color: white;
+        }
+        .delete-btn:hover {
+            background-color: #c9302c;
+        }
+        #summary-charts {
+            margin-top: 30px;
+        }
+        .chart-container {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .chart-container h3 {
+            margin-top: 0;
         }
     </style>
 </head>
 <body>
-    <h1>簡易出納帳</h1>
-    <button id="mode-toggle-button">ダークモード</button>
+    <h1>出納帳</h1>
 
-    <div id="entry-form">
+    <div id="transaction-form">
         <h2>新しい取引を追加</h2>
         <div>
             <label for="date">日付:</label>
@@ -192,23 +102,23 @@
         </div>
         <div>
             <label for="item">項目:</label>
-            <input type="text" id="item">
+            <input type="text" id="item" placeholder="食費, 給料など">
         </div>
         <div>
             <label for="amount">金額 (円):</label>
-            <input type="number" id="amount" min="1">
+            <input type="number" id="amount" placeholder="金額">
         </div>
         <div>
-            <label for="type">種別:</label>
+            <label for="type">区分:</label>
             <select id="type">
-                <option value="income">収入</option>
-                <option value="expense">支出</option>
+                <option value="1">収入</option>
+                <option value="2">支出</option>
             </select>
         </div>
-        <button id="add-button">追加</button>
+        <button id="add-transaction-btn">追加</button>
     </div>
 
-    <div id="entries-list">
+    <div id="transactions-list">
         <h2>取引一覧</h2>
         <table>
             <thead>
@@ -216,328 +126,322 @@
                     <th>日付</th>
                     <th>項目</th>
                     <th>金額 (円)</th>
-                    <th>種別</th>
+                    <th>区分</th>
+                    <th>操作</th>
                 </tr>
             </thead>
-            <tbody id="entries-table-body">
-                <!-- Entries will be added here by JavaScript -->
+            <tbody id="transactions-table-body">
+                <!-- 取引データがここに表示されます -->
             </tbody>
         </table>
     </div>
 
-    <div id="summary">
-        <h2>合計</h2>
-        <p>総収入: <span id="total-income">0</span> 円</p>
-        <p>総支出: <span id="total-expense">0</span> 円</p>
-        <p>差引残高: <span id="balance">0</span> 円</p>
-    </div>
-
-    <div id="graph-area">
-        <h2>グラフ</h2>
-        <div class="graph-controls">
-            <label for="graph-period">表示単位:</label>
-            <select id="graph-period">
-                <option value="daily">日単位</option>
-                <option value="monthly">月単位</option>
-                <option value="yearly">年単位</option>
-            </select>
+    <div id="summary-charts">
+        <h2>集計グラフ</h2>
+        <div class="chart-container">
+            <h3>日単位</h3>
+            <canvas id="daily-chart"></canvas>
         </div>
-        <canvas id="myChart" width="800" height="400"></canvas>
+        <div class="chart-container">
+            <h3>月単位</h3>
+            <canvas id="monthly-chart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h3>年単位</h3>
+            <canvas id="yearly-chart"></canvas>
+        </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        let entries = []; // 取引データを保持する配列
-        let myChart; // Chart.js インスタンスを保持する変数
+        const API_URL = 'http://localhost:3000';
 
-        // サンプルデータ
-        const sampleEntries = [
-            { date: '2023-10-01', item: '給料', amount: 250000, type: 'income' },
-            { date: '2023-10-01', item: '家賃', amount: 80000, type: 'expense' },
-            { date: '2023-10-05', item: '食費', amount: 5000, type: 'expense' },
-            { date: '2023-10-10', item: '副業収入', amount: 30000, type: 'income' },
-            { date: '2023-10-15', item: '交通費', amount: 2000, type: 'expense' },
-            { date: '2023-11-01', item: '給料', amount: 260000, type: 'income' },
-            { date: '2023-11-03', item: '食費', amount: 6000, type: 'expense' },
-            { date: '2023-11-10', item: '家賃', amount: 80000, type: 'expense' },
-            { date: '2023-12-01', item: '給料', amount: 270000, type: 'income' },
-            { date: '2023-12-05', item: '食費', amount: 7000, type: 'expense' },
-            { date: '2023-12-12', item: 'ボーナス', amount: 100000, type: 'income' },
-            { date: '2024-01-01', item: '給料', amount: 280000, type: 'income' },
-            { date: '2024-01-07', item: '食費', amount: 8000, type: 'expense' },
-            { date: '2024-01-15', item: '家賃', amount: 80000, type: 'expense' },
-        ];
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchTransactions();
+            setupFormListener();
+        });
 
-        entries = sampleEntries; // サンプルデータを初期データとして使用
-
-        const entriesTableBody = document.getElementById('entries-table-body');
-        const totalIncomeSpan = document.getElementById('total-income');
-        const totalExpenseSpan = document.getElementById('total-expense');
-        const balanceSpan = document.getElementById('balance');
-        const addButton = document.getElementById('add-button');
-        const dateInput = document.getElementById('date');
-        const itemInput = document.getElementById('item');
-        const amountInput = document.getElementById('amount');
-        const typeSelect = document.getElementById('type');
-        const dailyGraphButton = document.getElementById('daily-graph-button');
-        const monthlyGraphButton = document.getElementById('monthly-graph-button');
-        const yearlyGraphButton = document.getElementById('yearly-graph-button');
-        const canvas = document.getElementById('myChart');
-        const graphPeriodSelect = document.getElementById('graph-period');
-
-        // 取引一覧を表示する関数
-        function renderEntries() {
-            entriesTableBody.innerHTML = ''; // 一覧をクリア
-            let totalIncome = 0;
-            let totalExpense = 0;
-
-            // 日付でソート
-            const sortedEntries = [...entries].sort((a, b) => new Date(a.date) - new Date(b.date));
-
-            sortedEntries.forEach(entry => {
-                const row = entriesTableBody.insertRow();
-                row.insertCell(0).textContent = entry.date;
-                row.insertCell(1).textContent = entry.item;
-                const amountCell = row.insertCell(2);
-                amountCell.textContent = entry.amount.toLocaleString(); // 金額をカンマ区切りで表示
-                amountCell.classList.add(entry.type); // 収入/支出で色分け
-                row.insertCell(3).textContent = entry.type === 'income' ? '収入' : '支出';
-
-                if (entry.type === 'income') {
-                    totalIncome += entry.amount;
-                } else {
-                    totalExpense += entry.amount;
-                }
-            });
-
-            totalIncomeSpan.textContent = totalIncome.toLocaleString();
-            totalExpenseSpan.textContent = totalExpense.toLocaleString();
-            balanceSpan.textContent = (totalIncome - totalExpense).toLocaleString();
-        }
-
-        // データを集計する関数
-        function aggregateData(period) {
-            const aggregated = {}; // { 'YYYY-MM-DD': { income: 0, expense: 0 }, ... } or { 'YYYY-MM': { income: 0, expense: 0 }, ... } or { 'YYYY': { income: 0, expense: 0 }, ... }
-
-            entries.forEach(entry => {
-                let key;
-                if (period === 'daily') {
-                    key = entry.date; // YYYY-MM-DD
-                } else if (period === 'monthly') {
-                    key = entry.date.substring(0, 7); // YYYY-MM
-                } else if (period === 'yearly') {
-                    key = entry.date.substring(0, 4); // YYYY
-                }
-
-                if (!aggregated[key]) {
-                    aggregated[key] = { income: 0, expense: 0 };
-                }
-
-                if (entry.type === 'income') {
-                    aggregated[key].income += entry.amount;
-                } else {
-                    aggregated[key].expense += entry.amount;
-                }
-            });
-
-            // キー（日付/月/年）でソート
-            const sortedKeys = Object.keys(aggregated).sort();
-            const sortedData = sortedKeys.map(key => ({
-                key: key,
-                income: aggregated[key].income,
-                expense: aggregated[key].expense
-            }));
-
-            return sortedData;
-        }
-
-        // グラフを描画する関数 (Chart.jsを使用) - 折れ線グラフ
-        function renderGraph(period) {
-            const aggregatedData = aggregateData(period);
-            const labels = aggregatedData.map(data => data.key);
-            const incomeData = aggregatedData.map(data => data.income);
-            const expenseData = aggregatedData.map(data => data.expense);
-
-            // 既存のグラフがあれば破棄
-            if (myChart) {
-                myChart.destroy();
+        async function fetchTransactions() {
+            try {
+                const response = await fetch(`${API_URL}/transactions`);
+                const transactions = await response.json();
+                renderTransactions(transactions);
+                fetchSummary(); // 取引データを取得したら集計も取得
+            } catch (error) {
+                console.error('Error fetching transactions:', error);
             }
+        }
 
-            const isDarkMode = document.body.classList.contains('dark-mode');
-            const textColor = isDarkMode ? '#cccccc' : '#333';
-            const gridColor = isDarkMode ? '#444' : '#eee';
+        function renderTransactions(transactions) {
+            const tbody = document.getElementById('transactions-table-body');
+            tbody.innerHTML = ''; // Clear existing rows
 
-            myChart = new Chart(canvas, {
-                type: 'line', // 折れ線グラフに変更
+            transactions.forEach(transaction => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${transaction.date}</td>
+                    <td>${transaction.item}</td>
+                    <td>${transaction.amount}</td>
+                    <td>${transaction.type === 1 ? '収入' : '支出'}</td>
+                    <td>
+                        <button class="edit-btn" data-id="${transaction.id}">編集</button>
+                        <button class="delete-btn" data-id="${transaction.id}">削除</button>
+                    </td>
+                `;
+            });
+
+            setupActionListeners();
+        }
+
+        function setupFormListener() {
+            const addButton = document.getElementById('add-transaction-btn');
+            addButton.addEventListener('click', addTransaction);
+        }
+
+        async function addTransaction() {
+            const dateInput = document.getElementById('date');
+            const itemInput = document.getElementById('item');
+            const amountInput = document.getElementById('amount');
+            const typeSelect = document.getElementById('type');
+
+            const newTransaction = {
+                date: dateInput.value,
+                item: itemInput.value,
+                amount: amountInput.value,
+                type: typeSelect.value,
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/transactions`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(newTransaction),
+                });
+
+                if (response.ok) {
+                    // Clear form
+                    dateInput.value = '';
+                    itemInput.value = '';
+                    amountInput.value = '';
+                    typeSelect.value = '1';
+                    fetchTransactions(); // Refresh list and summary
+                } else {
+                    console.error('Failed to add transaction:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error adding transaction:', error);
+            }
+        }
+
+        function setupActionListeners() {
+            const editButtons = document.querySelectorAll('.edit-btn');
+            const deleteButtons = document.querySelectorAll('.delete-btn');
+
+            editButtons.forEach(button => {
+                button.addEventListener('click', handleEdit);
+            });
+
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', handleDelete);
+            });
+        }
+
+        function handleEdit(event) {
+            const transactionId = event.target.dataset.id;
+            // TODO: Implement edit functionality (e.g., show a modal or form)
+            alert(`編集ボタンがクリックされました。ID: ${transactionId}`);
+        }
+
+        async function handleDelete(event) {
+            const transactionId = event.target.dataset.id;
+            if (confirm('この取引を削除してもよろしいですか？')) {
+                try {
+                    const response = await fetch(`${API_URL}/transactions/${transactionId}`, {
+                        method: 'DELETE',
+                    });
+
+                    if (response.ok) {
+                        fetchTransactions(); // Refresh list and summary
+                    } else {
+                        console.error('Failed to delete transaction:', response.statusText);
+                    }
+                } catch (error) {
+                    console.error('Error deleting transaction:', error);
+                }
+            }
+        }
+
+        async function fetchSummary() {
+            try {
+                const response = await fetch(`${API_URL}/summary`);
+                const summaryData = await response.json();
+                renderCharts(summaryData);
+            } catch (error) {
+                console.error('Error fetching summary:', error);
+            }
+        }
+
+        let dailyChart, monthlyChart, yearlyChart;
+
+        function renderCharts(summaryData) {
+            // Destroy existing charts if they exist
+            if (dailyChart) dailyChart.destroy();
+            if (monthlyChart) monthlyChart.destroy();
+            if (yearlyChart) yearlyChart.destroy();
+
+            // Prepare data for Chart.js
+            const dailyLabels = Object.keys(summaryData.daily).sort();
+            const dailyIncomeData = dailyLabels.map(date => summaryData.daily[date].income);
+            const dailyExpenseData = dailyLabels.map(date => summaryData.daily[date].expense);
+
+            const monthlyLabels = Object.keys(summaryData.monthly).sort();
+            const monthlyIncomeData = monthlyLabels.map(month => summaryData.monthly[month].income);
+            const monthlyExpenseData = monthlyLabels.map(month => summaryData.monthly[month].expense);
+
+            const yearlyLabels = Object.keys(summaryData.yearly).sort();
+            const yearlyIncomeData = yearlyLabels.map(year => summaryData.yearly[year].income);
+            const yearlyExpenseData = yearlyLabels.map(year => summaryData.yearly[year].expense);
+
+            // Render Daily Chart
+            const dailyCtx = document.getElementById('daily-chart').getContext('2d');
+            dailyChart = new Chart(dailyCtx, {
+                type: 'bar',
                 data: {
-                    labels: labels,
+                    labels: dailyLabels,
                     datasets: [
                         {
                             label: '収入',
-                            data: incomeData,
-                            borderColor: isDarkMode ? '#5cb85c' : '#28a745', // 収入の色 (Green)
-                            backgroundColor: 'rgba(40, 167, 69, 0.2)', // 収入の背景色 (薄いGreen)
-                            fill: true, // エリアを塗りつぶす
-                            tension: 0.1 // 曲線を滑らかにする
+                            data: dailyIncomeData,
+                            backgroundColor: 'rgba(75, 192, 192, 0.6)',
                         },
                         {
                             label: '支出',
-                            data: expenseData,
-                            borderColor: isDarkMode ? '#d9534f' : '#dc3545', // 支出の色 (Red)
-                            backgroundColor: 'rgba(220, 53, 69, 0.2)', // 支出の背景色 (薄いRed)
-                            fill: true, // エリアを塗りつぶす
-                            tension: 0.1 // 曲線を滑らかにする
-                        }
-                    ]
+                            data: dailyExpenseData,
+                            backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                        },
+                    ],
                 },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: true, // アスペクト比を固定しない
                     scales: {
-                        x: {
-                            title: {
-                                display: true,
-                                text: period === 'daily' ? '日付' : (period === 'monthly' ? '月' : '年'),
-                                color: textColor
-                            },
-                            ticks: {
-                                color: textColor // X軸ラベルの色
-                            },
-                            grid: {
-                                color: gridColor // X軸グリッド線の色
-                            }
-                        },
-                        y: {
-                            title: {
-                                display: true,
-                                text: '金額 (円)',
-                                color: textColor
-                            },
-                            ticks: {
-                                color: textColor, // Y軸ラベルの色
-                                callback: function(value) {
-                                    return value.toLocaleString(); // 金額をカンマ区切りで表示
-                                }
-                            },
-                             grid: {
-                                color: gridColor // Y軸グリッド線の色
-                            }
-                        }
+                        x: { stacked: true },
+                        y: { stacked: true, beginAtZero: true },
                     },
                     plugins: {
-                        legend: {
-                            labels: {
-                                color: textColor // 凡例の文字色
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    let label = context.dataset.label || '';
-                                    if (label) {
-                                        label += ': ';
-                                    }
-                                    if (context.raw !== null) {
-                                        label += context.raw.toLocaleString() + ' 円'; // ツールチップの金額をカンマ区切りで表示
-                                    }
-                                    return label;
-                                }
-                            }
+                        title: {
+                            display: true,
+                            text: '日単位の収入・支出合計'
                         }
                     }
-                }
+                },
+            });
+
+            // Render Monthly Chart
+            const monthlyCtx = document.getElementById('monthly-chart').getContext('2d');
+            monthlyChart = new Chart(monthlyCtx, {
+                type: 'bar',
+                data: {
+                    labels: monthlyLabels,
+                    datasets: [
+                        {
+                            label: '収入',
+                            data: monthlyIncomeData,
+                            backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                        },
+                        {
+                            label: '支出',
+                            data: monthlyExpenseData,
+                            backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                        },
+                    ],
+                },
+                options: {
+                    scales: {
+                        x: { stacked: true },
+                        y: { stacked: true, beginAtZero: true },
+                    },
+                     plugins: {
+                        title: {
+                            display: true,
+                            text: '月単位の収入・支出合計'
+                        }
+                    }
+                },
+            });
+
+            // Render Yearly Chart
+            const yearlyCtx = document.getElementById('yearly-chart').getContext('2d');
+            yearlyChart = new Chart(yearlyCtx, {
+                type: 'bar',
+                data: {
+                    labels: yearlyLabels,
+                    datasets: [
+                        {
+                            label: '収入',
+                            data: yearlyIncomeData,
+                            backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                        },
+                        {
+                            label: '支出',
+                            data: yearlyExpenseData,
+                            backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                        },
+                    ],
+                },
+                options: {
+                    scales: {
+                        x: { stacked: true },
+                        y: { stacked: true, beginAtZero: true },
+                    },
+                     plugins: {
+                        title: {
+                            display: true,
+                            text: '年単位の収入・支出合計'
+                        }
+                    }
+                },
             });
         }
 
+        // サンプルデータの追加 (開発用)
+        async function addSampleData() {
+            const sampleTransactions = [
+                { date: '2023-01-05', item: '給料', amount: 250000, type: 1 },
+                { date: '2023-01-10', item: '家賃', amount: 80000, type: 2 },
+                { date: '2023-01-15', item: '食費', amount: 30000, type: 2 },
+                { date: '2023-02-05', item: '給料', amount: 260000, type: 1 },
+                { date: '2023-02-10', item: '家賃', amount: 80000, type: 2 },
+                { date: '2023-02-20', item: '交通費', amount: 10000, type: 2 },
+                { date: '2024-01-05', item: '給料', amount: 270000, type: 1 },
+                { date: '2024-01-10', item: '家賃', amount: 85000, type: 2 },
+                { date: '2024-01-25', item: '食費', amount: 35000, type: 2 },
+                { date: '2024-06-01', item: '副業収入', amount: 50000, type: 1 },
+                { date: '2024-06-03', item: '書籍購入', amount: 5000, type: 2 },
+                { date: '2024-06-04', item: '外食', amount: 3000, type: 2 },
+            ];
 
-        // 新しい取引を追加する関数
-        function addEntry() {
-            const date = dateInput.value;
-            const item = itemInput.value.trim();
-            const amount = parseInt(amountInput.value, 10);
-            const type = typeSelect.value;
-
-            if (!date || !item || isNaN(amount) || amount <= 0) {
-                alert('日付、項目、金額を正しく入力してください。');
-                return;
+            for (const transaction of sampleTransactions) {
+                try {
+                    const response = await fetch(`${API_URL}/transactions`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(transaction),
+                    });
+                    if (!response.ok) {
+                        console.error('Failed to add sample transaction:', transaction, response.statusText);
+                    }
+                } catch (error) {
+                    console.error('Error adding sample transaction:', transaction, error);
+                }
             }
-
-            const newEntry = {
-                date: date,
-                item: item,
-                amount: amount,
-                type: type
-            };
-
-            entries.push(newEntry);
-
-            // 入力フィールドをクリア
-            itemInput.value = '';
-            amountInput.value = '';
-            dateInput.valueAsDate = new Date(); // 日付は今日に戻す
-
-            renderEntries();
-            renderGraph('daily'); // 新しい取引追加後は日単位グラフを再描画
+            fetchTransactions(); // サンプルデータ追加後に一覧と集計を更新
         }
 
-        // イベントリスナーを設定
-        addButton.addEventListener('click', addEntry);
-        dateInput.addEventListener('keypress', function(event) { if (event.key === 'Enter') addEntry(); });
-        itemInput.addEventListener('keypress', function(event) { if (event.key === 'Enter') addEntry(); });
-        amountInput.addEventListener('keypress', function(event) { if (event.key === 'Enter') addEntry(); });
-        typeSelect.addEventListener('keypress', function(event) { if (event.key === 'Enter') addEntry(); });
-
-
-        graphPeriodSelect.addEventListener('change', (event) => {
-            renderGraph(event.target.value);
-        });
-
-        // 初期表示
-        renderEntries();
-        renderGraph('daily'); // ページロード時に日単位グラフを表示
-
-        // 現在の日付を入力フィールドにセット
-        dateInput.valueAsDate = new Date();
-
-        // ダークモード切り替え機能
-        const modeToggleButton = document.getElementById('mode-toggle-button');
-        const darkModeKey = 'darkModeEnabled';
-
-        // LocalStorageから設定を読み込み、適用する関数
-        function applyDarkModeSetting() {
-            const isDarkModeEnabled = localStorage.getItem(darkModeKey) === 'true';
-            if (isDarkModeEnabled) {
-                document.body.classList.add('dark-mode');
-                modeToggleButton.textContent = 'ライトモード';
-            } else {
-                document.body.classList.remove('dark-mode');
-                modeToggleButton.textContent = 'ダークモード';
-            }
-             // ダークモード切り替え時もグラフを再描画して色を更新
-             renderGraph(graphPeriodSelect.value);
-        }
-
-        // ボタンクリック時の処理
-        modeToggleButton.addEventListener('click', () => {
-            const isDarkModeEnabled = document.body.classList.contains('dark-mode');
-            localStorage.setItem(darkModeKey, !isDarkModeEnabled); // 設定を反転して保存
-            applyDarkModeSetting(); // 設定を適用
-        });
-
-        // ページロード時に設定を適用
-        applyDarkModeSetting();
-
-        // グラフボタンのアクティブ状態を管理 (プルダウンになったので不要)
-        // const graphButtons = document.querySelectorAll('.graph-controls button');
-        // graphButtons.forEach(button => {
-        //     button.addEventListener('click', () => {
-        //         graphButtons.forEach(btn => btn.classList.remove('active'));
-        //         button.classList.add('active');
-        //     });
-        // });
-        // 初期アクティブボタンを設定 (プルダウンになったので不要)
-        // dailyGraphButton.classList.add('active');
-
-
+        // ページロード時にサンプルデータを追加する場合
+        // addSampleData(); // 開発中はコメントを外して使用
     </script>
 </body>
 </html>

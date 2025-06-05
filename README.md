@@ -111,4 +111,8 @@ templates/kakeibo.html
 
 ※Gemini2.5Proと壁打ちして、進め方検討
 - なるべく詳しい仕様書を作成して、それをプロンプトとして渡すのがいい、と回答があった
+- [このプロンプト](./prompts/backend_prompt_for_gemini.md)で指示出ししてプログラム書かせてみた
+- 画面を開くとJavascriptエラーがいくつか発生している状態
+  - エラーを貼り付けて修正依頼したが解決せず、claude sonnet 4に質問して、最低限入力値が登録できるとことまではエラー解消
+    - [claude sonnet 4 の回答](./prompts/prompt_revisions01.md)
 - 
