@@ -86,3 +86,35 @@
   ```
   - グラフの描画がバグり、グラフ部分の表示領域が縦100万px超えた
     - グラフ部分の表示領域が100万px超え、表示崩れしている旨、canvas#myChartのheight部分がおかしいと指摘したら、適切に修正された。
+
+## ClineでTypeScript/Node.js/SQLiteでバックエンド作成
+
+### 概要
+- UdemyではClaudeSonnet3.5使用していますが、ここでは引き続きGeminiの無料APIを使用して実装を進めるため、バックエンド実装用のプロンプトはGemini2.5Proと壁打ちして進める。
+  - 引き続きGemini無料APIを使用するので、Gemini無料APIのことはGeminiに聞いた方がいいだろう、ってことでGemini2.5Proのチャットで壁打ちする。
+- Geminiの無料APIじゃ役不足だわーってなったらClaudeSonnet4のAPIを課金する。
+
+### プロンプト
+
+#### udemy教材のプロンプト
+下記のプロンプトをclaudeプロンプトジェネレータで、英語のよりよいプロンプトを生成して、そのプロンプトで指示を出す。
+```
+これからkakeibo.htmlをpython flaskとsqliteを利用してWebアプリケーション化します。
+/ アクセスして、kakeibo.htmlを表示し、kakeibo.htmlテーブル（日付(Date)・収入(int)・支出(int)）の内容をsqliteを利用して編集・保存できるようにしてください。
+構成は以下のように修正してください。
+app.py
+templates/kakeibo.html
+必要なモジュールのセットアップ方法も提示してください。
+```
+
+#### gemini-2.0-flash-thinking-exp-1219のAPIで実装する場合
+
+※Gemini2.5Proと壁打ちして、進め方検討
+- なるべく詳しい仕様書を作成して、それをプロンプトとして渡すのがいい、と回答があった
+- [このプロンプト](./prompts/backend_prompt_for_gemini.md)で指示出ししてプログラム書かせてみた
+- 画面を開くとJavascriptエラーがいくつか発生している状態
+  - エラーを貼り付けて修正依頼したが解決せず、claude sonnet 4に質問して、最低限入力値が登録できるとことまではエラー解消
+    - [claude sonnet 4 の回答](./prompts/prompt_revisions01.md)
+  
+### claude-sonnet-4-20250514のAPIで実装する場合
+
