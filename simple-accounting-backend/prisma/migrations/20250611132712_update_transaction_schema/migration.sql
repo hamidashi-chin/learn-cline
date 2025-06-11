@@ -1,0 +1,10 @@
+-- CreateTable
+CREATE TABLE "transactions" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "date" DATETIME NOT NULL,
+    "item" TEXT NOT NULL,
+    "amount" INTEGER NOT NULL DEFAULT 0,
+    "type" INTEGER NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+);
